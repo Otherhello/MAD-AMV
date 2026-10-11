@@ -6,7 +6,972 @@
     <title>视频检索</title>
     <style>
         :root {
+            --bg: #f4f6f8;<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频检索</title>
+    <style>
+        :root {
             --bg: #f4f6f8;
+            --card: #fff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --accent: #2563eb;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 16px;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-size: 28px;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 480px;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        #status {
+            max-width: 1100px;
+            margin: 8px auto 0;
+            padding: 0 20px;
+            color: #b45309;
+            font-size: 14px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: #dbe3ee;
+        }
+
+        .card-body {
+            padding: 12px 14px 16px;
+        }
+
+        .card-title {
+            margin: 0 0 8px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 12px;
+            color: var(--accent);
+            background: #eff6ff;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--muted);
+            padding: 40px 0;
+        }
+
+        /* ===== 添加视频 ===== */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .add-btn {
+            padding: 10px 18px;
+            font-size: 14px;
+            color: #fff;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .add-btn:hover {
+            opacity: 0.85;
+        }
+
+        .add-btn:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            padding: 16px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-head h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            border: none;
+            background: none;
+            font-size: 18px;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+
+        .field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .cover-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #dbe3ee;
+            margin-bottom: 12px;
+        }
+
+        .modal-foot {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-ghost {
+            padding: 10px 16px;
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-ghost:hover {
+            background: #f4f6f8;
+        }
+
+        .btn-primary {
+            padding: 10px 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.85;
+        }
+
+        /* ===== 弹窗 Tab 切换 ===== */
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .tab-btn:hover {
+            background: #f4f6f8;
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ===== 背景图 / 头像 / 文字行 ===== */
+        #背景层 {
+            position: fixed;
+            inset: 0;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .header-top {
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .avatar-wrap {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 2px;
+            background: #fff;
+            border: 2px solid var(--accent);
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18);
+        }
+
+        .avatar-wrap img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            background: #fff;
+        }
+
+        .quote-line {
+            margin: 4px 0 0;
+            font-size: 14px;
+            color: var(--muted);
+            min-height: 20px;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60vw;
+        }
+
+        .quote-line.fade-out {
+            opacity: 0;
+        }
+
+        .上传行 {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .上传行 .field {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .上传行 .btn-ghost {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        label + textarea.field {
+            margin-bottom: 16px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 4px 0 18px;
+            accent-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div id="背景层"></div>
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <div class="avatar-wrap" id="头像区" hidden>
+                    <img id="头像" alt="头像">
+                </div>
+                <div>
+                    <h1>视频检索</h1>
+                    <p class="quote-line" id="文字行"></p>
+                </div>
+            </div>
+            <button class="add-btn" id="个性化按钮" title="个性化设置">⚙ 个性化</button>
+        </div>
+        <input class="search-box" id="search" type="search" placeholder="按标题或标签检索...">
+    </header>
+
+    <!-- 个性化弹窗：视频管理 / 外观设置 -->
+    <div class="modal-overlay" id="个性化弹窗">
+        <div class="modal">
+            <div class="modal-head">
+                <h3 id="弹窗标题">个性化</h3>
+                <button class="modal-close" id="关闭弹窗" title="关闭">✕</button>
+            </div>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" id="Tab视频" data-tab="视频">🎬 视频管理</button>
+                <button class="tab-btn" id="Tab外观" data-tab="外观">🎨 外观设置</button>
+            </div>
+
+            <!-- 视频管理面板 -->
+            <div class="tab-panel" id="面板视频">
+                <label for="链接输入">粘贴 B 站视频链接</label>
+                <input class="field" id="链接输入" placeholder="https://www.bilibili.com/video/BV...">
+                <button class="add-btn" id="获取按钮" style="width: 100%; margin-bottom: 12px;">自动获取封面和标题</button>
+                <img class="cover-preview" id="封面预览" referrerpolicy="no-referrer" alt="封面预览" hidden>
+                <label for="标题输入">标题（可修改）</label>
+                <input class="field" id="标题输入" placeholder="视频标题">
+                <div class="modal-foot">
+                    <button class="btn-ghost" id="清空表单">清空</button>
+                    <button class="btn-primary" id="保存按钮">保存到列表</button>
+                </div>
+            </div>
+
+            <!-- 外观设置面板 -->
+            <div class="tab-panel" id="面板外观" hidden>
+                <label>背景图片（可上传或填写链接）</label>
+                <div class="上传行">
+                    <input class="field" id="背景链接" placeholder="https://图片链接.jpg">
+                    <button class="btn-ghost" id="上传背景" type="button">上传图片</button>
+                </div>
+                <label>背景透明度：<span id="透明度数值">65%</span></label>
+                <input type="range" id="透明度滑块" min="5" max="100" value="65">
+                <input type="file" id="背景文件" accept="image/*" hidden>
+
+                <label>头像图片（左上角，可上传或填写链接）</label>
+                <div class="上传行">
+                    <input class="field" id="头像链接" placeholder="https://图片链接.jpg">
+                    <button class="btn-ghost" id="上传头像" type="button">上传图片</button>
+                </div>
+                <input type="file" id="头像文件" accept="image/*" hidden>
+
+                <label>顶部文字行（每行一句，自动轮播）</label>
+                <textarea class="field" id="句子列表" rows="4" placeholder="每行写一句话，例如：&#10;唯有热爱，可抵岁月漫长&#10;愿你眼里有光，心中有海"></textarea>
+
+                <div class="modal-foot">
+                    <button class="btn-ghost" id="取消设置">取消</button>
+                    <button class="btn-primary" id="保存设置">保存设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p id="status"></p>
+    <main id="list"></main>
+
+    <script>
+        const 列表节点 = document.getElementById("list");
+        const 搜索框 = document.getElementById("search");
+        const 状态节点 = document.getElementById("status");
+        let 全部视频 = [];
+
+        function 过滤视频(列表, 关键字) {
+            const k = 关键字.trim().toLowerCase();
+            if (!k) {
+                return 列表;
+            }
+            return 列表.filter((v) => {
+                const 标题 = (v.title || "").toLowerCase();
+                const 标签 = (v.tags || []).join(" ").toLowerCase();
+                return 标题.includes(k) || 标签.includes(k);
+            });
+        }
+
+        function 渲染(列表) {
+            列表节点.innerHTML = "";
+            if (!列表.length) {
+                列表节点.innerHTML = '<p class="empty">没有匹配的视频</p>';
+                return;
+            }
+
+            列表.forEach((v) => {
+                const 卡片 = document.createElement("a");
+                卡片.className = "card";
+                卡片.href = v.url || "#";
+                卡片.target = "_blank";
+                卡片.rel = "noopener noreferrer";
+
+                const 封面 = document.createElement("img");
+                封面.src = v.cover || "";
+                封面.alt = v.title || "封面";
+                // 不发送本站来源，避免 B 站等图床因防盗链拒绝加载
+                封面.referrerPolicy = "no-referrer";
+                封面.onerror = () => {
+                    封面.alt = "封面加载失败，请检查 cover 路径";
+                };
+
+                const 内容 = document.createElement("div");
+                内容.className = "card-body";
+
+                const 标题 = document.createElement("h2");
+                标题.className = "card-title";
+                标题.textContent = v.title || "未命名";
+
+                const 标签区 = document.createElement("div");
+                标签区.className = "tags";
+                (v.tags || []).forEach((t) => {
+                    const span = document.createElement("span");
+                    span.className = "tag";
+                    span.textContent = t;
+                    标签区.appendChild(span);
+                });
+
+                内容.appendChild(标题);
+                内容.appendChild(标签区);
+                卡片.appendChild(封面);
+                卡片.appendChild(内容);
+                列表节点.appendChild(卡片);
+            });
+        }
+
+        function 应用检索() {
+            渲染(过滤视频(全部视频, 搜索框.value));
+        }
+
+        // ===== 双模式：本地 Python 服务器 / 静态托管（GitHub Pages 等）=====
+        // 是本地模式时可用 /api/*；静态模式把新增数据存浏览器 localStorage
+        const 本地存储视频 = "MADAMV_本地视频";
+        const 本地存储设置 = "MADAMV_设置";
+        let 本地模式 = false;
+
+        // 把 /uploads/... 绝对路径转为相对路径，兼容 GitHub Pages 子路径部署
+        function 修正路径(路径) {
+            if (!路径) return "";
+            if (路径.startsWith("/uploads/")) return 路径.slice(1);
+            return 路径;
+        }
+
+        async function 检测模式() {
+            try {
+                const 响应 = await fetch("/api/settings", { method: "GET" });
+                本地模式 = 响应.ok;
+            } catch (err) {
+                本地模式 = false;
+            }
+        }
+
+        function 读取本地视频() {
+            try {
+                return JSON.parse(localStorage.getItem(本地存储视频) || "[]");
+            } catch (err) {
+                return [];
+            }
+        }
+
+        async function 加载数据() {
+            let 静态视频 = [];
+            try {
+                const 响应 = await fetch("videos.json");
+                if (响应.ok) {
+                    静态视频 = await 响应.json();
+                }
+            } catch (err) {
+                // 读取失败也继续，仅显示本地新增内容
+            }
+            全部视频 = 静态视频.concat(读取本地视频());
+            应用检索();
+        }
+
+        搜索框.addEventListener("input", 应用检索);
+
+        // 等待模式检测完成后再加载视频和设置，避免竞态（加载数据不依赖模式，但仍统一在此初始化）
+        检测模式().then(() => {
+            加载数据();
+            加载设置();
+        });
+
+        // ===== 个性化弹窗（视频管理 + 外观设置）=====
+        const 个性化按钮 = document.getElementById("个性化按钮");
+        const 个性化弹窗 = document.getElementById("个性化弹窗");
+        const 关闭弹窗 = document.getElementById("关闭弹窗");
+        const 链接输入 = document.getElementById("链接输入");
+        const 获取按钮 = document.getElementById("获取按钮");
+        const 封面预览 = document.getElementById("封面预览");
+        const 标题输入 = document.getElementById("标题输入");
+        const 保存按钮 = document.getElementById("保存按钮");
+        const 清空表单 = document.getElementById("清空表单");
+        const Tab视频 = document.getElementById("Tab视频");
+        const Tab外观 = document.getElementById("Tab外观");
+        const 面板视频 = document.getElementById("面板视频");
+        const 面板外观 = document.getElementById("面板外观");
+
+        function 显示Tab(名称) {
+            Tab视频.classList.toggle("active", 名称 === "视频");
+            Tab外观.classList.toggle("active", 名称 === "外观");
+            面板视频.hidden = 名称 !== "视频";
+            面板外观.hidden = 名称 !== "外观";
+        }
+        Tab视频.addEventListener("click", () => 显示Tab("视频"));
+        Tab外观.addEventListener("click", () => {
+            显示Tab("外观");
+            // 切换到外观时回填当前设置值（opacity 存的是 0~1，滑块用 0~100）
+            背景链接.value = 当前设置.background.image || "";
+            透明度滑块.value = Math.round(当前设置.background.opacity * 100);
+            透明度数值.textContent = 透明度滑块.value + "%";
+            头像链接.value = 当前设置.avatar.image || "";
+            句子列表.value = (当前设置.quotes || []).join("\n");
+            // base64 图片放入隐藏变量，输入框显示占位文字，避免长串乱码
+            待存背景图 = "";
+            待存头像图 = "";
+            if (背景链接.value.startsWith("data:image")) {
+                待存背景图 = 背景链接.value;
+                背景链接.value = "【背景图已就绪】";
+            }
+            if (头像链接.value.startsWith("data:image")) {
+                待存头像图 = 头像链接.value;
+                头像链接.value = "【头像已就绪】";
+            }
+        });
+
+        function 打开弹窗(面板) {
+            显示Tab(面板 || "视频");
+            个性化弹窗.classList.add("show");
+            链接输入.focus();
+        }
+
+        function 收起弹窗() {
+            个性化弹窗.classList.remove("show");
+        }
+
+        个性化按钮.addEventListener("click", () => 打开弹窗("视频"));
+        关闭弹窗.addEventListener("click", 收起弹窗);
+        清空表单.addEventListener("click", () => {
+            链接输入.value = "";
+            标题输入.value = "";
+            封面预览.hidden = true;
+            封面预览.src = "";
+        });
+        个性化弹窗.addEventListener("click", (e) => {
+            if (e.target === 个性化弹窗) 收起弹窗();
+        });
+
+        // 自动获取封面和标题（本地模式可用；静态模式提示手动填写）
+        获取按钮.addEventListener("click", async () => {
+            if (!本地模式) {
+                alert("在线模式无法自动抓取封面标题（没有 Python 后端）。\n请在标题栏手动填写标题，封面栏可粘贴 B 站封面图片链接。");
+                return;
+            }
+            const 链接 = 链接输入.value.trim();
+            if (!链接) {
+                alert("请先粘贴 B 站视频链接");
+                return;
+            }
+            获取按钮.disabled = true;
+            获取按钮.textContent = "获取中...";
+            try {
+                const 响应 = await fetch("/api/meta?url=" + encodeURIComponent(链接));
+                const 结果 = await 响应.json();
+                if (!响应.ok) {
+                    throw new Error(结果.error || "获取失败");
+                }
+                标题输入.value = 结果.title;
+                封面预览.src = 结果.cover;
+                封面预览.hidden = false;
+                链接输入.value = 结果.url;
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                获取按钮.disabled = false;
+                获取按钮.textContent = "自动获取封面和标题";
+            }
+        });
+
+        // 保存视频：本地模式写入 videos.json，静态模式存浏览器
+        保存按钮.addEventListener("click", async () => {
+            const 标题 = 标题输入.value.trim();
+            const 链接 = 链接输入.value.trim();
+            if (!标题 || !链接) {
+                alert("请先获取或填写标题和链接");
+                return;
+            }
+            const 数据 = {
+                title: 标题,
+                url: 链接,
+                cover: 封面预览.hidden ? "" : 封面预览.src
+            };
+            保存按钮.disabled = true;
+            try {
+                if (本地模式) {
+                    const 响应 = await fetch("/api/add", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(数据)
+                    });
+                    const 结果 = await 响应.json();
+                    if (!响应.ok) {
+                        throw new Error(结果.error || "保存失败");
+                    }
+                } else {
+                    // 静态模式：存浏览器 localStorage
+                    const 列表 = 读取本地视频();
+                    数据.id = (列表.reduce((m, v) => Math.max(m, v.id || 0), 0) || 0) + 1;
+                    数据.tags = [];
+                    列表.push(数据);
+                    localStorage.setItem(本地存储视频, JSON.stringify(列表));
+                }
+                链接输入.value = "";
+                标题输入.value = "";
+                封面预览.hidden = true;
+                封面预览.src = "";
+                收起弹窗();
+                加载数据();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                保存按钮.disabled = false;
+            }
+        });
+
+        // ===== 个性化设置 =====
+        const 背景层 = document.getElementById("背景层");
+        const 取消设置 = document.getElementById("取消设置");
+        const 背景链接 = document.getElementById("背景链接");
+        const 上传背景 = document.getElementById("上传背景");
+        const 背景文件 = document.getElementById("背景文件");
+        const 透明度滑块 = document.getElementById("透明度滑块");
+        const 透明度数值 = document.getElementById("透明度数值");
+        const 头像链接 = document.getElementById("头像链接");
+        const 上传头像 = document.getElementById("上传头像");
+        const 头像文件 = document.getElementById("头像文件");
+        const 头像区 = document.getElementById("头像区");
+        const 头像图 = document.getElementById("头像");
+        const 句子列表 = document.getElementById("句子列表");
+        const 文字行 = document.getElementById("文字行");
+        const 保存设置 = document.getElementById("保存设置");
+
+        let 轮播定时器 = null;
+        let 当前设置 = {
+            background: { image: "", opacity: 0.65 },
+            avatar: { image: "" },
+            quotes: []
+        };
+
+        // 应用所有设置到页面
+        function 应用设置() {
+            // 背景图 + 透明度
+            if (当前设置.background.image) {
+                背景层.style.backgroundImage = 'url("' + 修正路径(当前设置.background.image) + '")';
+                背景层.style.opacity = 当前设置.background.opacity;
+            } else {
+                背景层.style.backgroundImage = "none";
+                背景层.style.opacity = 0;
+            }
+            // 头像
+            if (当前设置.avatar.image) {
+                头像区.hidden = false;
+                头像图.src = 修正路径(当前设置.avatar.image);
+            } else {
+                头像区.hidden = true;
+            }
+            // 文字行轮播
+            if (轮播定时器) {
+                clearTimeout(轮播定时器);
+            }
+            const 句子们 = 当前设置.quotes || [];
+            if (!句子们.length) {
+                文字行.textContent = "";
+                文字行.style.opacity = 0;
+                return;
+            }
+            let 序号 = 0;
+            function 播放下一句() {
+                const 句子 = 句子们[序号 % 句子们.length];
+                文字行.textContent = 句子;
+                文字行.style.opacity = 1;
+                // 显示时长由文字长度决定：每字约 0.45 秒，最短 4 秒，最长 12 秒
+                const 时长 = Math.min(12000, Math.max(4000, 句子.length * 450));
+                轮播定时器 = setTimeout(() => {
+                    文字行.style.opacity = 0;
+                    setTimeout(() => {
+                        序号++;
+                        播放下一句();
+                    }, 500);
+                }, 时长);
+            }
+            播放下一句();
+        }
+
+        // 通用上传
+        // 本地模式：走 /api/upload，得到 /uploads/xxx.jpg 地址填入输入框
+        // 在线模式：压缩成 base64 存入隐藏变量（不显示乱码），输入框显示占位文字，并即时预览
+        let 待存背景图 = "";
+        let 待存头像图 = "";
+
+        async function 上传图片文件(文件, 目标输入框) {
+            if (本地模式) {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    try {
+                        const 响应 = await fetch("/api/upload", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ data: reader.result })
+                        });
+                        const 结果 = await 响应.json();
+                        if (!响应.ok) {
+                            throw new Error(结果.error || "上传失败");
+                        }
+                        目标输入框.value = 结果.url;
+                    } catch (err) {
+                        alert(err.message);
+                    }
+                };
+                reader.readAsDataURL(文件);
+                return;
+            }
+
+            // 在线模式：压缩 → 存隐藏变量 → 占位 → 即时预览
+            const 压缩后的 = await 压缩图片(文件);
+            if (!压缩后的) {
+                alert("图片读取失败，请换一张图片试试。");
+                return;
+            }
+            if (目标输入框 === 背景链接) {
+                待存背景图 = 压缩后的;
+                背景链接.value = "【背景图已就绪】";
+                // 即时预览
+                背景层.style.backgroundImage = 'url("' + 压缩后的 + '")';
+                背景层.style.opacity = parseInt(透明度滑块.value, 10) / 100;
+            } else {
+                待存头像图 = 压缩后的;
+                头像链接.value = "【头像已就绪】";
+                // 即时预览
+                头像区.hidden = false;
+                头像图.src = 压缩后的;
+            }
+            alert("图片已就绪，点击「保存设置」即可应用（保存在当前浏览器）。");
+        }
+
+        // 把图片压缩为合理尺寸的 JPEG base64（在线模式用）
+        function 压缩图片(文件, 最大宽 = 1280, 质量 = 0.8) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const 图片 = new Image();
+                    图片.onload = () => {
+                        let 宽 = 图片.width;
+                        let 高 = 图片.height;
+                        if (宽 > 最大宽) {
+                            高 = Math.round(高 * 最大宽 / 宽);
+                            宽 = 最大宽;
+                        }
+                        const 画布 = document.createElement("canvas");
+                        画布.width = 宽;
+                        画布.height = 高;
+                        画布.getContext("2d").drawImage(图片, 0, 0, 宽, 高);
+                        resolve(画布.toDataURL("image/jpeg", 质量));
+                    };
+                    图片.onerror = () => resolve(null);
+                    图片.src = e.target.result;
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(文件);
+            });
+        }
+
+        上传背景.addEventListener("click", () => 背景文件.click());
+        上传头像.addEventListener("click", () => 头像文件.click());
+        背景文件.addEventListener("change", (e) => {
+            if (e.target.files[0]) 上传图片文件(e.target.files[0], 背景链接);
+            e.target.value = "";
+        });
+        头像文件.addEventListener("change", (e) => {
+            if (e.target.files[0]) 上传图片文件(e.target.files[0], 头像链接);
+            e.target.value = "";
+        });
+
+        // 透明度滑块显示
+        透明度滑块.addEventListener("input", () => {
+            透明度数值.textContent = 透明度滑块.value + "%";
+        });
+
+        // 取消设置 = 收起弹窗
+        取消设置.addEventListener("click", 收起弹窗);
+
+        // 保存设置：本地模式写入 settings.json，静态模式存浏览器
+        保存设置.addEventListener("click", async () => {
+            // 按空行过滤，保留非空句子
+            const 句子 = 句子列表.value.split("\n").map(s => s.trim()).filter(Boolean);
+            // 图片值：优先用隐藏变量（新上传的 base64），其次老设置，最后输入框真实链接
+            const 背景图原值 = 当前设置.background.image || "";
+            const 头像图原值 = 当前设置.avatar.image || "";
+            const 背景图新值 = 背景链接.value.trim();
+            const 头像图新值 = 头像链接.value.trim();
+            function 取图片值(新值, 待存, 原值) {
+                if (新值 && !新值.startsWith("【")) return 新值; // 用户填了真实链接/URL
+                if (待存) return 待存;                             // 隐藏变量里有新上传的图
+                return 原值;                                      // 保持原样
+            }
+            const 新设置 = {
+                background: {
+                    image: 取图片值(背景图新值, 待存背景图, 背景图原值),
+                    opacity: parseInt(透明度滑块.value, 10) / 100
+                },
+                avatar: { image: 取图片值(头像图新值, 待存头像图, 头像图原值) },
+                quotes: 句子
+            };
+            保存设置.disabled = true;
+            try {
+                if (本地模式) {
+                    const 响应 = await fetch("/api/settings", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(新设置)
+                    });
+                    const 结果 = await 响应.json();
+                    if (!响应.ok) {
+                        throw new Error(结果.error || "保存失败");
+                    }
+                } else {
+                    localStorage.setItem(本地存储设置, JSON.stringify(新设置));
+                }
+                当前设置 = 新设置;
+                应用设置();
+                收起弹窗();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                保存设置.disabled = false;
+            }
+        });
+
+        // 页面加载时读取设置（本地模式 / 静态模式）
+        async function 加载设置() {
+            if (本地模式) {
+                try {
+                    const 响应 = await fetch("/api/settings");
+                    if (响应.ok) {
+                        当前设置 = await 响应.json();
+                    }
+                } catch (err) {
+                    // 读取失败静默，保持默认
+                }
+            } else {
+                try {
+                    const 本地 = localStorage.getItem(本地存储设置);
+                    if (本地) {
+                        当前设置 = JSON.parse(本地);
+                    }
+                } catch (err) {
+                    // 解析失败静默，保持默认
+                }
+            }
+            应用设置();
+        }
+    </script>
+</body>
+</html>
+
             --card: #fff;
             --text: #1f2937;
             --muted: #6b7280;
